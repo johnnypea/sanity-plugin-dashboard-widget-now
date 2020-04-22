@@ -6,7 +6,7 @@ import Button from 'part:@sanity/components/buttons/default'
 
 import styles from './Now.css'
 
-import CurrentDeployment from './CurrentDeployment'
+// import CurrentDeployment from './CurrentDeployment'
 import Deployments from './Deployments'
 
 class CoreWidget extends React.Component {
@@ -19,6 +19,7 @@ class CoreWidget extends React.Component {
 
   state = {
     deploymentStatus: null,
+    currentDeployment: null,
     deployments: null,
     deploying: null,
     hasDeployments: false,
@@ -29,27 +30,40 @@ class CoreWidget extends React.Component {
     const requestOptions = {
       method: 'POST',
     }
+
+    //direct Gitlab deploy
     fetch(this.config.deployHook, requestOptions)
       .then(async (response) => {
         const data = await response.json()
 
-        // // check for error response
-        // if (!response.ok) {
-        //     // get error message from body or default to response status
-        //     const error = (data && data.message) || response.status;
-        //     return Promise.reject(error);
-        // }
-
-        this.setState({ deploymentStatus: data.job })
-      })
-      .catch((error) => {
-        this.setState({ error: error })
-        console.error('There was an error!', error)
+        this.setState({ deploymentStatus: true })
       })
       .then(() => {
         this.setState({ deploying: true })
         this.checkDeployments()
       })
+
+    // fetch(this.config.deployHook, requestOptions)
+    //   .then(async (response) => {
+    //     const data = await response.json()
+
+    //     // // check for error response
+    //     // if (!response.ok) {
+    //     //     // get error message from body or default to response status
+    //     //     const error = (data && data.message) || response.status;
+    //     //     return Promise.reject(error);
+    //     // }
+
+    //     this.setState({ deploymentStatus: data.job })
+    //   })
+    //   .catch((error) => {
+    //     this.setState({ error: error })
+    //     console.error('There was an error!', error)
+    //   })
+    //   .then(() => {
+    //     this.setState({ deploying: true })
+    //     this.checkDeployments()
+    //   })
   }
 
   getDeployment = () => {
@@ -64,11 +78,9 @@ class CoreWidget extends React.Component {
         Authorization: 'Bearer ' + this.config.token,
       },
     }
-    // https://badgen.net/
-    // https://iconify.design/icon-sets/?query=zeit
 
     fetch(
-      'https://api.zeit.co/v5/now/deployments?teamId=' +
+      'https://api.vercel.com/v6/now/deployments?teamId=' +
         this.config.teamId +
         '&projectId=' +
         this.config.projectId +
@@ -104,6 +116,7 @@ class CoreWidget extends React.Component {
     let currentState = false
     this.state.deployments.some((deployment) => {
       if (deployment.state === 'QUEUED' || deployment.state === 'BUILDING') {
+        this.setState({ currentDeployment: deployment.uid })
         currentState = true
         return true
       }
@@ -145,21 +158,20 @@ class CoreWidget extends React.Component {
 
         {!isLoading && (
           <List className={styles.list}>
-            <CurrentDeployment deployment={this.state.deploymentStatus} />
             <Deployments deployments={this.state.deployments} />
           </List>
         )}
 
         <div className={styles.footer}>
           {(isDeploying && (
-            <Button bleed color="primary" kind="simple" onClick={this.getDeployment}>
+            <Button bleed color="primary" kind="add" onClick={this.getDeployment}>
               Refresh
             </Button>
           )) || (
             <Button bleed color="primary" kind="simple" onClick={this.deployNow}>
               Build & deploy
             </Button>
-          )}
+          )}         
         </div>
       </>
     )

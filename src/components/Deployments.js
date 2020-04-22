@@ -2,6 +2,7 @@ import React from 'react'
 
 import DefaultPreview from 'part:@sanity/components/previews/default'
 import { Item } from 'part:@sanity/components/lists/default'
+import Button from 'part:@sanity/components/buttons/default'
 import Moment from 'react-moment'
 
 import { Icon } from '@iconify/react'
@@ -15,9 +16,12 @@ import styles from './Now.css'
 class DashboardWidget extends React.Component {
   render() {
     const { deployments } = this.props
+
     return (
       <>
         {deployments.map((deployment) => {
+          const deployment_target = deployment.target || 'development'
+
           const statusIcon =
             (deployment.state == 'READY' && greenCircle) ||
             (deployment.state == 'ERROR' && redCircle) ||
@@ -28,7 +32,7 @@ class DashboardWidget extends React.Component {
             <Item key={deployment.uid} className={styles.item}>
               <Moment unix>{deployment.created / 1000}</Moment>
               <DefaultPreview
-                title={`[${deployment.state}] - ${deployment.target}`}
+                title={`[${deployment.state}] - ${deployment_target}`}
                 subtitle={deployment.url}
                 media=<Icon icon={statusIcon} />
               />
